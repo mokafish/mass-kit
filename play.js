@@ -6,6 +6,6 @@ import { Lexer,Interpreter } from './lib/dsl.js';
 // console.log(tokens);
 
 let itp = new Interpreter()
-itp.load('{name} is {age} years {12:20 id=1 aa cc= bb=0} old')
+itp.load('{name} is {age} years {12:20 ^2 #1 aa cc= bb=0} old')
 console.log(itp.interpret('main'));
 
