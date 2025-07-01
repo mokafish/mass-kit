@@ -2,13 +2,15 @@
   "name": "mass-kit",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js", 
+  "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo pass"
+    "test": "ava"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.6.5"
+  "devDependencies": {
+    "ava": "^6.4.0"
+  }
 }
