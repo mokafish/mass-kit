@@ -40,18 +40,22 @@ test.only('dsl.Parser syntax', async t => {
 
     let tokens = lexer.tokenize('.../q={1:5}');
     let ast = parser.parse(tokens);
-    let _ins = ['seq', '1', '5'];
-    t.deepEqual(ast.nodes[1].ins.slice(0, _ins.length), _ins);
+    let _ins = ['seq', 1, 5, 1];
+    t.deepEqual(ast.nodes[1].ins, _ins);
 
     tokens = lexer.tokenize('.../q={1:5:-1}');
     ast = parser.parse(tokens);
-    _ins = ['seq', '1', '5','-1'];
-    t.deepEqual(ast.nodes[1].ins.slice(0, _ins.length), _ins);
+    _ins = ['seq', 1, 5, -1];
+    t.deepEqual(ast.nodes[1].ins, _ins);
 
     tokens = lexer.tokenize('.../q={1:}');
     ast = parser.parse(tokens);
-    _ins = ['seq', '1'];
-    t.deepEqual(ast.nodes[1].ins.slice(0, _ins.length), _ins);
+    _ins = ['seq', 1, Number.MAX_SAFE_INTEGER, 1];
+    t.deepEqual(ast.nodes[1].ins, _ins);
 
+    tokens = lexer.tokenize('.../q={:20}');
+    ast = parser.parse(tokens);
+    _ins = ['seq', 0, 20, 1];
+    t.deepEqual(ast.nodes[1].ins, _ins);
 
 });
