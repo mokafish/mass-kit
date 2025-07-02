@@ -72,7 +72,11 @@ test('dsl.Parser syntax', async t => {
 test('dsl.Interpreter', async t => {
     const interpreter = new Interpreter();
     interpreter.load('.../q={:20}');
-    t.log(interpreter);
-
+    t.log(interpreter.environment);
+    interpreter.interpret();
+    t.log(interpreter.environment);
+    interpreter.interpret();
+    t.log(interpreter.environment);
+    
     t.pass();
 })
