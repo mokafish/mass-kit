@@ -1,6 +1,7 @@
 import util from 'util';
 import test from 'ava';
 import { Lexer, Parser, Interpreter } from './lib/dsl.js';
+import { topologicalSort } from './lib/helper.js';
 
 util.inspect.defaultOptions.depth = 5;  // Increase AVA's printing depth
 
@@ -81,3 +82,27 @@ test('dsl.Interpreter', async t => {
 
     t.pass();
 })
+
+
+test('helper.topologicalSort()', t => {
+    const items = [
+        { id: 'apple', direction: null },
+        { id: 'Banana', direction: 'Elderberry' },
+        { id: 'Cherry', direction: 'Banana' },
+        { id: 'Dragon fruit', direction: 'Banana' },
+        { id: 'Elderberry', direction: null },
+    ]
+
+    const expected = [
+        { id: 'apple', direction: null, },
+        { id: 'Elderberry', direction: null, },
+        { id: 'Banana', direction: 'Elderberry', },
+        { id: 'Cherry', direction: 'Banana', },
+        { id: 'Dragon fruit', direction: 'Banana', },
+    ]
+
+    const sorted = topologicalSort(items);
+
+    // t.log(sorted);
+    t.deepEqual(sorted, expected, 'topologicalSort should return items in correct order');
+});
