@@ -72,12 +72,14 @@ test('dsl.Parser syntax', async t => {
 
 test('dsl.Interpreter', async t => {
     const interpreter = new Interpreter();
-    interpreter.load('.../q={:20}');
-    t.log(interpreter.runtime.heap);
-    interpreter.interpret();
-    t.log(interpreter.runtime.heap);
-    interpreter.interpret();
-    t.log(interpreter.runtime.heap);
+    interpreter.load('... q={:5} w={$0} e={$3} r={20:30}');
+    interpreter.ready();
+    // t.log(interpreter.runtime.heap);
+    let o;
+    for (let i = 0; i < 15; i++) {
+        o = interpreter.interpret();
+        t.log(`${i}`.padStart(2), o.main);
+    }
 
 
     t.pass();
