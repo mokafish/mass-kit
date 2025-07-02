@@ -1,6 +1,6 @@
 import util from 'util';
 import test from 'ava';
-import { Lexer, Parser } from './lib/dsl.js';
+import { Lexer, Parser, Interpreter } from './lib/dsl.js';
 
 util.inspect.defaultOptions.depth = 5;  // Increase AVA's printing depth
 
@@ -40,22 +40,34 @@ test.only('dsl.Parser syntax', async t => {
 
     let tokens = lexer.tokenize('.../q={1:5}');
     let ast = parser.parse(tokens);
-    let _ins = ['seq', 1, 5, 1];
-    t.deepEqual(ast.nodes[1].ins, _ins);
+    t.is(ast.nodes[1].opcode, 'seq');
+    t.deepEqual(ast.nodes[1].data, [1, 5, 1]);
 
     tokens = lexer.tokenize('.../q={1:5:-1}');
     ast = parser.parse(tokens);
-    _ins = ['seq', 1, 5, -1];
-    t.deepEqual(ast.nodes[1].ins, _ins);
+    t.is(ast.nodes[1].opcode, 'seq');
+    t.deepEqual(ast.nodes[1].data, [1, 5, -1]);
 
     tokens = lexer.tokenize('.../q={1:}');
     ast = parser.parse(tokens);
-    _ins = ['seq', 1, Number.MAX_SAFE_INTEGER, 1];
-    t.deepEqual(ast.nodes[1].ins, _ins);
+    t.is(ast.nodes[1].opcode, 'seq');
+    t.deepEqual(ast.nodes[1].data, [1, Number.MAX_SAFE_INTEGER, 1]);
 
     tokens = lexer.tokenize('.../q={:20}');
     ast = parser.parse(tokens);
-    _ins = ['seq', 0, 20, 1];
-    t.deepEqual(ast.nodes[1].ins, _ins);
+    t.is(ast.nodes[1].opcode, 'seq');
+    t.deepEqual(ast.nodes[1].data, [0, 20, 1]);
 
+    tokens = lexer.tokenize('.../q={xxx}');
+    ast = parser.parse(tokens);
+
+    t.log(ast)
 });
+
+test('dsl.Interpreter', async t => {
+    const interpreter = new Interpreter();
+    interpreter.load('.../q={:20}');
+    t.log(interpreter);
+
+    t.is(interpreter, interpreter);
+})
