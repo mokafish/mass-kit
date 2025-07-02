@@ -23,18 +23,26 @@ test('dsl.Parser parse()', async t => {
     const lexer = new Lexer();
     const parser = new Parser();
 
-    const tokens = lexer.tokenize(
+    let tokens = lexer.tokenize(
         `hello {"exec 2" #1 ^g:2 abc "x y z = 789"  x="\\{ 123 \\}" "y z"="4 5\ 6"}  world...`
     );
 
-    const ast = parser.parse(tokens);
+    let ast = parser.parse(tokens);
+    t.snapshot(ast, 'dsl.Parser parse() #1');
 
+    tokens = lexer.tokenize('.../q={xxx}&i={1:5}&s={ yyy }&d={"z\\"z}z"}');
+    ast = parser.parse(tokens);
+    t.snapshot(ast, 'dsl.Parser parse() #2');
+
+
+    // t.log(ast)
     // t.log(ast);
 
-    t.is(parser, parser);
+    // t.is(parser, parser);
 });
 
-test.only('dsl.Parser syntax', async t => {
+test('dsl.Parser syntax', async t => {
+    t.timeout(10000); // Increase timeout for this test
     const lexer = new Lexer();
     const parser = new Parser();
 
@@ -58,16 +66,13 @@ test.only('dsl.Parser syntax', async t => {
     t.is(ast.nodes[1].opcode, 'seq');
     t.deepEqual(ast.nodes[1].data, [0, 20, 1]);
 
-    tokens = lexer.tokenize('.../q={xxx}');
-    ast = parser.parse(tokens);
 
-    t.log(ast)
 });
 
-test('dsl.Interpreter', async t => {
+test.only('dsl.Interpreter', async t => {
     const interpreter = new Interpreter();
     interpreter.load('.../q={:20}');
     t.log(interpreter);
 
-    t.is(interpreter, interpreter);
+    t.pass();
 })

@@ -12,5 +12,8 @@
   "license": "ISC",
   "devDependencies": {
     "ava": "^6.4.0"
+  },
+  "ava":{
+    "snapshotDir": "test/.snapshots"
   }
 }
