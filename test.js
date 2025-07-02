@@ -5,7 +5,7 @@ import { Lexer, Parser, Interpreter } from './lib/dsl.js';
 util.inspect.defaultOptions.depth = 5;  // Increase AVA's printing depth
 
 test('foo', t => {
-    t.pass();
+    t.like({ a: 1, b: 2, c: 1 }, { a: 1, b: 2 });
 });
 
 test('dsl.Lexer', async t => {
