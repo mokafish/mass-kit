@@ -228,7 +228,7 @@ test('dsl.Interpreter - pow', async t => {
 
 test('dsl.Interpreter - some', async t => {
     const interpreter = new Interpreter();
-    interpreter.load('... q={:5 ^1} w={10-100-3} e={:3 ^3} r={zh,en,}');
+    interpreter.load('... q={:5 ^1} w={10-100-3} e={:3 ^3} r={zh,,en,}');
 
     // return t.pass();
 
