@@ -9,6 +9,30 @@ test('foo', t => {
     t.like({ a: 1, b: 2, c: 1 }, { a: 1, b: 2 });
 });
 
+
+test('helper.topologicalSort()', t => {
+    const items = [
+        { id: 'apple', direction: null },
+        { id: 'Banana', direction: 'Elderberry' },
+        { id: 'Cherry', direction: 'Banana' },
+        { id: 'Dragon fruit', direction: 'Banana' },
+        { id: 'Elderberry', direction: null },
+    ]
+
+    const expected = [
+        { id: 'apple', direction: null, },
+        { id: 'Elderberry', direction: null, },
+        { id: 'Banana', direction: 'Elderberry', },
+        { id: 'Cherry', direction: 'Banana', },
+        { id: 'Dragon fruit', direction: 'Banana', },
+    ]
+
+    const sorted = topologicalSort(items);
+
+    // t.log(sorted);
+    t.deepEqual(sorted, expected, 'topologicalSort should return items in correct order');
+});
+
 test('dsl.Lexer', async t => {
     const lexer = new Lexer();
     const tokens = lexer.tokenize(
@@ -70,21 +94,6 @@ test('dsl.Parser - preprocess', async t => {
     t.snapshot(ast, 'dsl.Parser - preprocess #1');
 })
 
-test('dsl.Interpreter', async t => {
-    const interpreter = new Interpreter();
-    interpreter.load('... q={:5} w={#0} e={#3} r={20:30}');
-    interpreter.ready();
-    // t.log(interpreter.runtime.heap);
-    let o;
-    for (let i = 0; i < 15; i++) {
-        o = interpreter.interpret();
-        t.log(`${i}`.padStart(2), o.main);
-    }
-
-
-    t.pass();
-})
-
 test('dsl.Interpreter - throw if unhoped loading', async t => {
     let interpreter = new Interpreter();
     interpreter.load('... q={:5}');
@@ -102,26 +111,57 @@ test('dsl.Interpreter - throw if circular reference', async t => {
     }, { instanceOf: Interpreter.InterpreterError, message: 'Circular references exist between tags.' });
 })
 
+test('dsl.Interpreter - reference', async t => {
+    const interpreter = new Interpreter();
+    interpreter.load('... q={:5} w={#0} e={#3} r={20:29}');
+    interpreter.ready();
+    // t.log(interpreter.runtime.heap);
+    let actual = []
+    let o;
+    for (let i = 0; i < 15; i++) {
+        o = interpreter.interpret();
+        // t.log(`${i}`.padStart(2), o.main);
+        actual.push(o.main);
+    }
 
-test('helper.topologicalSort()', t => {
-    const items = [
-        { id: 'apple', direction: null },
-        { id: 'Banana', direction: 'Elderberry' },
-        { id: 'Cherry', direction: 'Banana' },
-        { id: 'Dragon fruit', direction: 'Banana' },
-        { id: 'Elderberry', direction: null },
+    let expected = [
+        '... q=0 w=0 e=20 r=20',
+        '... q=1 w=1 e=21 r=21',
+        '... q=2 w=2 e=22 r=22',
+        '... q=3 w=3 e=23 r=23',
+        '... q=4 w=4 e=24 r=24',
+        '... q=5 w=5 e=25 r=25',
+        '... q=0 w=0 e=26 r=26',
+        '... q=1 w=1 e=27 r=27',
+        '... q=2 w=2 e=28 r=28',
+        '... q=3 w=3 e=29 r=29',
+        '... q=4 w=4 e=20 r=20',
+        '... q=5 w=5 e=21 r=21',
+        '... q=0 w=0 e=22 r=22',
+        '... q=1 w=1 e=23 r=23',
+        '... q=2 w=2 e=24 r=24',
     ]
 
-    const expected = [
-        { id: 'apple', direction: null, },
-        { id: 'Elderberry', direction: null, },
-        { id: 'Banana', direction: 'Elderberry', },
-        { id: 'Cherry', direction: 'Banana', },
-        { id: 'Dragon fruit', direction: 'Banana', },
+    t.deepEqual(actual, expected);
+})
+
+test('dsl.Interpreter - pow', async t => {
+    const interpreter = new Interpreter();
+    interpreter.load('... q={1:3 ^1} w={1:3}');
+    interpreter.ready();
+    t.log(interpreter.runtime.heap);
+    let actual = []
+    let o;
+    for (let i = 0; i < 15; i++) {
+        o = interpreter.interpret();
+        t.log(`${i}`.padStart(2), o.main);
+        // actual.push(o.main);
+    }
+
+    let expected = [
+
     ]
 
-    const sorted = topologicalSort(items);
+    t.deepEqual(actual, expected);
 
-    // t.log(sorted);
-    t.deepEqual(sorted, expected, 'topologicalSort should return items in correct order');
-});
+})
