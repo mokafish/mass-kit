@@ -84,6 +84,15 @@ test('dsl.Parser - syntax', async t => {
     t.is(ast[1].opcode, 'seq');
     t.deepEqual(ast[1].data, [0, 20, 1]);
 
+    tokens = lexer.tokenize('r={zh,en,ja}');
+    ast = parser.parse(tokens);
+    t.is(ast[1].opcode, 'choose');
+    t.deepEqual(ast[1].data, [['zh', 'en', 'ja'], true]);
+
+    tokens = lexer.tokenize('r={"help:edit|t:apple(company)|x\\ p"}');
+    ast = parser.parse(tokens);
+    t.is(ast[1].opcode, 'choose');
+    t.deepEqual(ast[1].data, [['help:edit', 't:apple(company)', 'x p',], false,]);
 
 });
 
@@ -186,7 +195,10 @@ test('dsl.Interpreter - pow', async t => {
 
 test('dsl.Interpreter - some', async t => {
     const interpreter = new Interpreter();
-    interpreter.load('... q={:5 ^1} w={10-100-3} e={:3 ^3} r={:3}');
+    interpreter.load('... q={:5 ^1} w={10-100-3} e={:3 ^3} r={zh,en}');
+
+    // return t.pass();
+
     interpreter.ready();
     // t.log(interpreter.runtime.heap);
     let o;
