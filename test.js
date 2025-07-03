@@ -186,7 +186,7 @@ test('dsl.Interpreter - pow', async t => {
 
 test('dsl.Interpreter - some', async t => {
     const interpreter = new Interpreter();
-    interpreter.load('... q={:5 ^1} w={10-100-3} e={#3} r={:3}');
+    interpreter.load('... q={:5 ^1} w={10-100-3} e={:3 ^3} r={:3}');
     interpreter.ready();
     // t.log(interpreter.runtime.heap);
     let o;
