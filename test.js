@@ -183,3 +183,16 @@ test('dsl.Interpreter - pow', async t => {
     t.snapshot(actual, 'dsl.Interpreter - pow #2');
 
 })
+
+test('dsl.Interpreter - some', async t => {
+    const interpreter = new Interpreter();
+    interpreter.load('... q={:5 ^3} w={#0} e={#3} r={:3}');
+    interpreter.ready();
+    // t.log(interpreter.runtime.heap);
+    let o;
+    for (let i = 0; i < 15; i++) {
+        o = interpreter.interpret();
+        t.log(`${i}`.padStart(2), o.main);
+    }
+    t.pass();
+})
