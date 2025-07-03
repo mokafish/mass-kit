@@ -1,7 +1,7 @@
 import util from 'util';
 import test from 'ava';
 import { Lexer, Parser, Interpreter } from './lib/dsl.js';
-import { topologicalSort } from './lib/helper.js';
+import { topologicalSort, trimFalsy } from './lib/helper.js';
 
 util.inspect.defaultOptions.depth = 5;  // Increase AVA's printing depth
 
@@ -31,6 +31,39 @@ test('helper.topologicalSort()', t => {
 
     // t.log(sorted);
     t.deepEqual(sorted, expected, 'topologicalSort should return items in correct order');
+});
+
+test('helper.trimFalsy()', t => {
+    t.deepEqual(trimFalsy([]), []);
+    t.deepEqual(trimFalsy([true]), [true]);
+    t.deepEqual(trimFalsy(['single']), ['single']);
+    t.deepEqual(trimFalsy([null]), []);
+    t.deepEqual(trimFalsy([0]), []);
+    t.deepEqual(trimFalsy([null, undefined, 0, false, '']), []);
+    t.deepEqual(
+        trimFalsy([false, 0, 'valid', true, null]),
+        ['valid', true]
+    );
+    t.deepEqual(
+        trimFalsy([undefined, 'start', NaN, 'end']),
+        ['start', NaN, 'end']  // 注意：NaN 是假值但位于中间应保留
+    );
+    t.deepEqual(
+        trimFalsy([true, [], 0, 'end', null]),
+        [true, [], 0, 'end']  // 注意：0 位于中间应保留
+    );
+    t.deepEqual(
+        trimFalsy([{ data: 1 }, '', ['test'], 1]),
+        [{ data: 1 }, '', ['test'], 1]
+    );
+    t.deepEqual(
+        trimFalsy([0, 1, 2, 0, 3, 0]),
+        [1, 2, 0, 3]  // 中间0保留，两端0去除
+    );
+    t.deepEqual(
+        trimFalsy(['', 'valid', ' ']), // 注意：空格是真值
+        ['valid', ' ']
+    );
 });
 
 test('dsl.Lexer', async t => {
@@ -195,7 +228,7 @@ test('dsl.Interpreter - pow', async t => {
 
 test('dsl.Interpreter - some', async t => {
     const interpreter = new Interpreter();
-    interpreter.load('... q={:5 ^1} w={10-100-3} e={:3 ^3} r={zh,en}');
+    interpreter.load('... q={:5 ^1} w={10-100-3} e={:3 ^3} r={zh,en,}');
 
     // return t.pass();
 
