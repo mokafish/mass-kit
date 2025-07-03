@@ -147,12 +147,20 @@ test('dsl.Interpreter - reference', async t => {
 
 test('dsl.Interpreter - pow', async t => {
     const interpreter = new Interpreter();
-    interpreter.load('... q={1:3 ^1} w={1:3}');
+    interpreter.load('--'
+        +' q={1:3 ^1}'
+        +' w={11:33:11 ^2}'
+        +' e={111:333:111 ^3}'
+        +' r={1111:3333:1111}'
+        +' t={111:333:111 ^3}'
+        +' y={11:33:11 ^2}'
+        +' u={1:3 ^1}'
+    );
     interpreter.ready();
-    t.log(interpreter.runtime.heap);
+    // t.log(interpreter.runtime.heap);
     let actual = []
     let o;
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 100; i++) {
         o = interpreter.interpret();
         t.log(`${i}`.padStart(2), o.main);
         // actual.push(o.main);
