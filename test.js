@@ -228,8 +228,8 @@ test('dsl.Interpreter - pow', async t => {
 
 test('dsl.Interpreter - some', async t => {
     const interpreter = new Interpreter();
-    // interpreter.load('... q={:5 ^1} w={10-100-3} e={:3 ^3} r={zh,,en,}');
-    interpreter.load('-- x={Choose:fruits.txt}, y={choose:fruits.txt}');
+    interpreter.load('... q={:5 ^1} w={10-100-3} e={:3 ^3} r={zh,en,} {t=true|||t=true}');
+    interpreter.load('... x={Choose:fruits.txt}, y={choose:fruits.txt}', 'doc');
 
     // return t.pass();
 
@@ -238,7 +238,8 @@ test('dsl.Interpreter - some', async t => {
     let o;
     for (let i = 0; i < 15; i++) {
         o = interpreter.interpret();
-        t.log(`${i}`.padStart(2), o.main);
+        t.log(`${i}`.padStart(2), o.main, '\n  ',  o.doc);
+        // t.log(`${i}`.padStart(2), o.doc);
     }
     t.pass();
 })
