@@ -67,7 +67,7 @@ test('dsl.Parser - preprocess', async t => {
     const parser = new Parser();
     let ast = parser.parse('... q={:5 ^1 #apple} w={#doc:7} e={#3} r={20:30 ^doc:9}', 'main');
     // t.log(ast);
-    t.pass();
+    t.snapshot(ast, 'dsl.Parser - preprocess #1');
 })
 
 test('dsl.Interpreter', async t => {
