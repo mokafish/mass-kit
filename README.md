@@ -12,14 +12,13 @@ number:
 	X-Y   ramdom integer
 	X:Y   cycle increment integer
 	-- example: 1-100, 10:20, 1-, 1:, :20
-timestamp: [TODO]
+timestamp:
 	ts   integer of seconds
-	tm   decimal of seconds.millisecond
 	ms   integer of millisecond
-	-- example: ts, tm, ms
+	-- example: ts, ms
 string:
 	<t>X-Y  ramdom length string
-	<t>X:Y  cycle increment length string [TODO]
+	<t>X:Y  cycle increment length string 
 	-- char table: s [A-Za-z0-9]; u [A-Z]; l [a-z];
 		w [A-Za-z]; h [0-9a-f]; H [0-9A-F]; d [0-9]; 
 	-- example: s5-10, w3:8, h4:12, H6:20
