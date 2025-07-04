@@ -4,6 +4,11 @@
   "description": "",
   "main": "index.js",
   "type": "module",
+  "bin": {
+    "mass": "./cli/index.js",
+    "mass-ping": "./cli/ping.js",
+    "mass-server": "./cli/server.js"
+  },
   "scripts": {
     "test": "ava"
   },
@@ -13,7 +18,7 @@
   "devDependencies": {
     "ava": "^6.4.0"
   },
-  "ava":{
+  "ava": {
     "snapshotDir": "test/.snapshots"
   }
 }
