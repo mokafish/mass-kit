@@ -12,25 +12,25 @@ number:
 	X-Y   ramdom integer
 	X:Y   cycle increment integer
 	-- example: 1-100, 10:20, 1-, 1:, :20
-timestamp:
+timestamp: [TODO]
 	ts   integer of seconds
 	tm   decimal of seconds.millisecond
 	ms   integer of millisecond
 	-- example: ts, tm, ms
 string:
 	<t>X-Y  ramdom length string
-	<t>X:Y  cycle increment length string
+	<t>X:Y  cycle increment length string [TODO]
 	-- char table: s [A-Za-z0-9]; u [A-Z]; l [a-z];
 		w [A-Za-z]; h [0-9a-f]; H [0-9A-F]; d [0-9]; 
 	-- example: s5-10, w3:8, h4:12, H6:20
 other:  
-	uuid  uuid4() 8-4-4-4-12 format string
+	uuid  uuid4() 8-4-4-4-12 format string [TODO]
 	A,B,C,...   choose orderly item 
 	A|B|C|...   choose random item 
 	choose:file random line from file
-	@file       read file content
-	*file       load custom generator from file
-	!cmd        execute shell command and return the output
+	@file       read file content [TODO]
+	*file       load custom generator from file [TODO]
+	!cmd        execute shell command and return the output [TODO]
 	#ID         reference the target value
 
 ```

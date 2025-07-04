@@ -5,7 +5,8 @@ import {
     rand,
     choose,
     chooseFromFile,
-    randText
+    randText,
+    product
 } from '../lib/generator.js';
 
 // 测试 seq 函数
@@ -136,4 +137,74 @@ test('randText: generates valid strings', t => {
         // 验证 overflow
         t.true(overflow);
     }
+});
+
+
+// 场景1：任意值池为空时返回空结果且标记溢出
+test('returns empty immediately if any pool is empty', t => {
+  const ticker1 = product('-', [1, 2], []);
+  t.deepEqual(ticker1(), { value: '', overflow: true });
+
+  const ticker2 = product(null, [], ['a']);
+  t.deepEqual(ticker2(), { value: [], overflow: true });
+});
+
+// 场景2：无值池时返回空结果（字符串或数组）
+test('handles no pools with string separator', t => {
+  const ticker = product('-');
+  t.deepEqual(ticker(), { value: '', overflow: false });
+  t.deepEqual(ticker(), { value: '', overflow: true }); // 第二次调用标记溢出
+});
+
+test('handles no pools with array output', t => {
+  const ticker = product(null);
+  t.deepEqual(ticker(), { value: [], overflow: false });
+  t.deepEqual(ticker(), { value: [], overflow: true });
+});
+
+// 场景3：单值池的基本功能
+test('single pool with string separator', t => {
+  const ticker = product('-', ['a', 'b']);
+  t.deepEqual(ticker(), { value: 'a', overflow: false });
+  t.deepEqual(ticker(), { value: 'b', overflow: false });
+  t.deepEqual(ticker(), { value: 'a', overflow: true }); // 循环回起点并标记溢出
+});
+
+test('single pool with array output', t => {
+  const ticker = product(null, [10]);
+  t.deepEqual(ticker(), { value: [10], overflow: false });
+  t.deepEqual(ticker(), { value: [10], overflow: true });
+});
+
+// 场景4：多值池的组合逻辑
+test('multiple pools with string separator', t => {
+  const ticker = product('|', ['x', 'y'], [1, 2]);
+  t.deepEqual(ticker(), { value: 'x|1', overflow: false });
+  t.deepEqual(ticker(), { value: 'x|2', overflow: false });
+  t.deepEqual(ticker(), { value: 'y|1', overflow: false });
+  t.deepEqual(ticker(), { value: 'y|2', overflow: false });
+  t.deepEqual(ticker(), { value: 'x|1', overflow: true }); // 循环回起点并标记溢出
+});
+
+test('multiple pools with array output', t => {
+  const ticker = product(undefined, ['a'], [true]);
+  t.deepEqual(ticker(), { value: ['a', true], overflow: false });
+  t.deepEqual(ticker(), { value: ['a', true], overflow: true });
+});
+
+// 场景5：溢出标记的正确性
+test('correct overflow behavior after full cycle', t => {
+  const ticker = product(null, [1], [2]);
+  t.deepEqual(ticker(), { value: [1, 2], overflow: false }); // 首次调用无溢出
+  t.deepEqual(ticker(), { value: [1, 2], overflow: true });  // 完成循环后标记溢出
+  t.deepEqual(ticker(), { value: [1, 2], overflow: true });  // 后续持续标记溢出
+});
+
+// 场景6：非字符串分隔符返回数组
+test('non-string separator returns arrays', t => {
+  const ticker1 = product(123, [1], [2]);
+  t.deepEqual(ticker1(), { value: [1, 2], overflow: false });
+
+  const ticker2 = product(false, ['a']);
+  t.deepEqual(ticker2(), { value: ['a'], overflow: false });
 });
