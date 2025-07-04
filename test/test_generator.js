@@ -6,7 +6,8 @@ import {
     choose,
     chooseFromFile,
     randText,
-    product
+    product,
+    power,
 } from '../lib/generator.js';
 
 // 测试 seq 函数
@@ -139,46 +140,45 @@ test('randText: generates valid strings', t => {
     }
 });
 
-
 // 场景1：任意值池为空时返回空结果且标记溢出
 test('product: returns empty immediately if any pool is empty', t => {
-  const ticker1 = product('-', [1, 2], []);
+  const ticker1 = product([[1, 2], []], '-');
   t.deepEqual(ticker1(), { value: '', overflow: true });
 
-  const ticker2 = product(null, [], ['a']);
+  const ticker2 = product([[], ['a']], null);
   t.deepEqual(ticker2(), { value: [], overflow: true });
 });
 
 // 场景2：无值池时返回空结果（字符串或数组）
 test('product: handles no pools with string separator', t => {
-  const ticker = product('-');
+  const ticker = product([], '-');
   t.deepEqual(ticker(), { value: '', overflow: false });
   t.deepEqual(ticker(), { value: '', overflow: true }); // 第二次调用标记溢出
 });
 
 test('product: handles no pools with array output', t => {
-  const ticker = product(null);
+  const ticker = product([], null);
   t.deepEqual(ticker(), { value: [], overflow: false });
   t.deepEqual(ticker(), { value: [], overflow: true });
 });
 
 // 场景3：单值池的基本功能
 test('product: single pool with string separator', t => {
-  const ticker = product('-', ['a', 'b']);
+  const ticker = product([['a', 'b']], '-');
   t.deepEqual(ticker(), { value: 'a', overflow: false });
   t.deepEqual(ticker(), { value: 'b', overflow: false });
   t.deepEqual(ticker(), { value: 'a', overflow: true }); // 循环回起点并标记溢出
 });
 
 test('product: single pool with array output', t => {
-  const ticker = product(null, [10]);
+  const ticker = product([[10]], null);
   t.deepEqual(ticker(), { value: [10], overflow: false });
   t.deepEqual(ticker(), { value: [10], overflow: true });
 });
 
 // 场景4：多值池的组合逻辑
 test('product: multiple pools with string separator', t => {
-  const ticker = product('|', ['x', 'y'], [1, 2]);
+  const ticker = product([['x', 'y'], [1, 2]], '|');
   t.deepEqual(ticker(), { value: 'x|1', overflow: false });
   t.deepEqual(ticker(), { value: 'x|2', overflow: false });
   t.deepEqual(ticker(), { value: 'y|1', overflow: false });
@@ -187,14 +187,14 @@ test('product: multiple pools with string separator', t => {
 });
 
 test('product: multiple pools with array output', t => {
-  const ticker = product(undefined, ['a'], [true]);
+  const ticker = product([['a'], [true]], undefined);
   t.deepEqual(ticker(), { value: ['a', true], overflow: false });
   t.deepEqual(ticker(), { value: ['a', true], overflow: true });
 });
 
 // 场景5：溢出标记的正确性
 test('product: correct overflow behavior after full cycle', t => {
-  const ticker = product(null, [1], [2]);
+  const ticker = product([[1], [2]], null);
   t.deepEqual(ticker(), { value: [1, 2], overflow: false }); // 首次调用无溢出
   t.deepEqual(ticker(), { value: [1, 2], overflow: true });  // 完成循环后标记溢出
   t.deepEqual(ticker(), { value: [1, 2], overflow: true });  // 后续持续标记溢出
@@ -202,11 +202,86 @@ test('product: correct overflow behavior after full cycle', t => {
 
 // 场景6：非字符串分隔符返回数组
 test('product: non-string separator returns arrays', t => {
-  const ticker1 = product(123, [1], [2]);
+  const ticker1 = product([[1], [2]], 123);
   t.deepEqual(ticker1(), { value: [1, 2], overflow: false });
 
-  const ticker2 = product(false, ['a']);
+  const ticker2 = product([['a']], false);
   t.deepEqual(ticker2(), { value: ['a'], overflow: false });
 });
 
+// ----------------------
+// power() 测试用例
+// ----------------------
+test('空输入应返回空结果', t => {
+    const ticker = power('', 1, 3, null);
+    const result = ticker();
+    t.deepEqual(result, { value: [], overflow: true });
+});
 
+test('单字符幂集应正确生成', t => {
+    const ticker = power(['A'], 1, 2, '');
+    const results = collectTicker(ticker, 4);
+    
+    t.deepEqual(results[0], { value: 'A', overflow: false });    // 1次幂
+    t.deepEqual(results[1], { value: 'AA', overflow: false });   // 2次幂
+    t.deepEqual(results[2], { value: 'A', overflow: true });     // 重置到1次幂
+    t.deepEqual(results[3], { value: 'AA', overflow: false });   // 继续2次幂
+});
+
+test('指数范围应正确迭代', t => {
+    const ticker = power('AB', 2, 3, null);
+    const results = collectTicker(ticker, 14);
+    
+    // 2次幂 (AA, AB, BA, BB)
+    t.deepEqual(results[0], { value: ['A','A'], overflow: false });
+    t.deepEqual(results[1], { value: ['A','B'], overflow: false });
+    t.deepEqual(results[2], { value: ['B','A'], overflow: false });
+    t.deepEqual(results[3], { value: ['B','B'], overflow: false });
+    
+    // 3次幂 (AAA, AAB, ...)
+    t.deepEqual(results[4], { value: ['A','A','A'], overflow: false });
+    t.deepEqual(results[5], { value: ['A','A','B'], overflow: false });
+    t.deepEqual(results[6], { value: ['A','B','A'], overflow: false });
+    t.deepEqual(results[7], { value: ['A','B','B'], overflow: false });
+    t.deepEqual(results[8], { value: ['B','A','A'], overflow: false });
+    t.deepEqual(results[9], { value: ['B','A','B'], overflow: false });
+    t.deepEqual(results[10], { value: ['B','B','A'], overflow: false });
+    t.deepEqual(results[11], { value: ['B','B','B'], overflow: false });
+   
+    
+    // 重置回2次幂 (带溢出标志)
+    t.deepEqual(results[12], { value: ['A','A'], overflow: true });
+    t.deepEqual(results[13], { value: ['A','B'], overflow: false });
+});
+
+test('溢出标志应在范围重置时设置', t => {
+    const ticker = power('XY', 1, 1, '');
+    const results = collectTicker(ticker, 4);
+    
+    t.false(results[0].overflow); // X
+    t.false(results[1].overflow); // Y
+    t.true(results[2].overflow);  // 重置后的X
+    t.false(results[3].overflow); // Y
+});
+
+test('字符串输入应正确处理', t => {
+    const ticker = power('01', 1, 2, '');
+    const results = collectTicker(ticker, 7);
+    
+    t.deepEqual(results[0], { value: '0', overflow: false });
+    t.deepEqual(results[1], { value: '1', overflow: false });
+    t.deepEqual(results[2], { value: '00', overflow: false });
+    t.deepEqual(results[3], { value: '01', overflow: false });
+    t.deepEqual(results[4], { value: '10', overflow: false });
+    t.deepEqual(results[5], { value: '11', overflow: false });
+    t.deepEqual(results[6], { value: '0', overflow: true }); // 重置到1次幂
+});
+
+// 辅助函数：收集所有结果
+function collectTicker(ticker, count) {
+    const results = [];
+    for (let i = 0; i < count; i++) {
+        results.push(ticker());
+    }
+    return results;
+}

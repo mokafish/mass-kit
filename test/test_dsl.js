@@ -167,8 +167,8 @@ test('Interpreter - pow', async t => {
 test('Interpreter - some', async t => {
     let code = '... q={:5 ^1} w={10-100-3} e={:3 ^3} r={zh,en,} {t=true|||t=true}'
     code = '... x={Choose:fruits.txt encoding=url}, y={choose:fruits.txt}'
+    code = '... t={ts} m={ms}'
     code = '... username={w5-16} password={t8-32}'
-
 
     const interpreter = new Interpreter();
     interpreter.load(code);
