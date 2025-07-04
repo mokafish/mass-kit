@@ -39,16 +39,61 @@ test('rand: without countdown', t => {
 test('rand: with countdown', t => {
     const next = rand(1, 3, 3);
     const results = [
-        next(), // #1 overflow=true (count=3)
+        next(), // #1 overflow=false (count=3)
         next(), // #2 overflow=false (count=2)
         next(), // #3 overflow=false (count=1)
         next(), // #4 overflow=true (count reset to 3)
     ];
 
-    t.is(results[0].overflow, true);
+    t.is(results[0].overflow, false);
     t.is(results[1].overflow, false);
     t.is(results[2].overflow, false);
     t.is(results[3].overflow, true);
+});
+
+test('rand: with countdown is 0', t => {
+    const next = rand(1, 3, 0);
+    const results = [
+        next(),
+        next(), 
+        next(),
+        next(), 
+    ];
+
+    t.is(results[0].overflow, true);
+    t.is(results[1].overflow, true);
+    t.is(results[2].overflow, true);
+    t.is(results[3].overflow, true);
+});
+
+test('rand: with countdown is 1', t => {
+    const next = rand(1, 3, 1);
+    const results = [
+        next(), 
+        next(), 
+        next(), 
+        next(), 
+    ];
+
+    t.is(results[0].overflow, false);
+    t.is(results[1].overflow, true);
+    t.is(results[2].overflow, true);
+    t.is(results[3].overflow, true);
+});
+
+test('rand: with countdown < 0', t => {
+    const next = rand(1, 3, -1);
+    const results = [
+        next(), 
+        next(), 
+        next(), 
+        next(), 
+    ];
+
+    t.is(results[0].overflow, false);
+    t.is(results[1].overflow, false);
+    t.is(results[2].overflow, false);
+    t.is(results[3].overflow, false);
 });
 
 // 测试 choose 函数
