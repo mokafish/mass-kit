@@ -17,7 +17,7 @@ test('seq: basic sequence with step 1', t => {
     t.deepEqual(next(), { value: 1, overflow: true });  // 重置后首次返回起点
 });
 
-test.skip('seq: step larger than range', t => {
+test('seq: step larger than range', t => {
     const next = seq(1, 5, 10);
     t.deepEqual(next(), { value: 1, overflow: false });
     t.deepEqual(next(), { value: 1, overflow: true });  // 立即重置
