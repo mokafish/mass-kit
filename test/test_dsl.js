@@ -165,19 +165,19 @@ test('Interpreter - pow', async t => {
 })
 
 test('Interpreter - some', async t => {
+    let code = '... q={:5 ^1} w={10-100-3} e={:3 ^3} r={zh,en,} {t=true|||t=true}'
+    code = '... x={Choose:fruits.txt encoding=url}, y={choose:fruits.txt}'
+    code = '... username={w5-16} password={t8-32}'
+
+
     const interpreter = new Interpreter();
-    interpreter.load('... q={:5 ^1} w={10-100-3} e={:3 ^3} r={zh,en,} {t=true|||t=true}');
-    interpreter.load('... x={Choose:fruits.txt encoding=url}, y={choose:fruits.txt}', 'doc');
-
-    // return t.pass();
-
+    interpreter.load(code);
     interpreter.ready();
     // t.log(interpreter.runtime.heap);
     let o;
     for (let i = 0; i < 15; i++) {
         o = interpreter.interpret();
-        t.log(`${i}`.padStart(2), o.main, '\n  ',  o.doc);
-        // t.log(`${i}`.padStart(2), o.doc);
+        t.log(`${i}`.padStart(2), o.main);
     }
     t.pass();
 })
