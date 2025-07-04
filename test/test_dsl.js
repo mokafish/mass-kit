@@ -164,11 +164,39 @@ test('Interpreter - pow', async t => {
 
 })
 
+test('Interpreter - power text', async t => {
+    const interpreter = new Interpreter();
+    interpreter.load('/login?username={root,admin ^1}&password={d2:3}', 'url');
+    interpreter.ready();
+    for (let i = 0; i < 100; i++) {
+        let url = interpreter.interpret().url;
+        t.is(url, `/login?username=root&password=${i.toString().padStart(2, '0')}`)
+    }
+    for (let i = 0; i < 1000; i++) {
+        let url = interpreter.interpret().url;
+        t.is(url, `/login?username=root&password=${i.toString().padStart(3, '0')}`)
+    }
+    for (let i = 0; i < 100; i++) {
+        let url = interpreter.interpret().url;
+        t.is(url, `/login?username=admin&password=${i.toString().padStart(2, '0')}`)
+    }
+    for (let i = 0; i < 1000; i++) {
+        let url = interpreter.interpret().url;
+        t.is(url, `/login?username=admin&password=${i.toString().padStart(3, '0')}`)
+    }
+    for (let i = 0; i < 100; i++) {
+        let url = interpreter.interpret().url;
+        t.is(url, `/login?username=root&password=${i.toString().padStart(2, '0')}`)
+    }
+})
+
+
 test('Interpreter - some', async t => {
     let code = '... q={:5 ^1} w={10-100-3} e={:3 ^3} r={zh,en,} {t=true|||t=true}'
     code = '... x={Choose:fruits.txt encoding=url}, y={choose:fruits.txt}'
     code = '... t={ts} m={ms}'
     code = '... username={w5-16} password={t8-32}'
+    code = '... username={root,admin ^1} password={d2:3}'
 
     const interpreter = new Interpreter();
     interpreter.load(code);
