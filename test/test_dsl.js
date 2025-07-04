@@ -1,81 +1,19 @@
 import util from 'util';
 import test from 'ava';
-import { Lexer, Parser, Interpreter } from './lib/dsl.js';
-import { topologicalSort, trimFalsy } from './lib/helper.js';
+import { Lexer, Parser, Interpreter } from '../lib/dsl.js';
 
 util.inspect.defaultOptions.depth = 5;  // Increase AVA's printing depth
 
-test('foo', t => {
-    t.like({ a: 1, b: 2, c: 1 }, { a: 1, b: 2 });
-});
-
-
-test('helper.topologicalSort()', t => {
-    const items = [
-        { id: 'apple', direction: null },
-        { id: 'Banana', direction: 'Elderberry' },
-        { id: 'Cherry', direction: 'Banana' },
-        { id: 'Dragon fruit', direction: 'Banana' },
-        { id: 'Elderberry', direction: null },
-    ]
-
-    const expected = [
-        { id: 'apple', direction: null, },
-        { id: 'Elderberry', direction: null, },
-        { id: 'Banana', direction: 'Elderberry', },
-        { id: 'Cherry', direction: 'Banana', },
-        { id: 'Dragon fruit', direction: 'Banana', },
-    ]
-
-    const sorted = topologicalSort(items);
-
-    // t.log(sorted);
-    t.deepEqual(sorted, expected, 'topologicalSort should return items in correct order');
-});
-
-test('helper.trimFalsy()', t => {
-    t.deepEqual(trimFalsy([]), []);
-    t.deepEqual(trimFalsy([true]), [true]);
-    t.deepEqual(trimFalsy(['single']), ['single']);
-    t.deepEqual(trimFalsy([null]), []);
-    t.deepEqual(trimFalsy([0]), []);
-    t.deepEqual(trimFalsy([null, undefined, 0, false, '']), []);
-    t.deepEqual(
-        trimFalsy([false, 0, 'valid', true, null]),
-        ['valid', true]
-    );
-    t.deepEqual(
-        trimFalsy([undefined, 'start', NaN, 'end']),
-        ['start', NaN, 'end']  // 注意：NaN 是假值但位于中间应保留
-    );
-    t.deepEqual(
-        trimFalsy([true, [], 0, 'end', null]),
-        [true, [], 0, 'end']  // 注意：0 位于中间应保留
-    );
-    t.deepEqual(
-        trimFalsy([{ data: 1 }, '', ['test'], 1]),
-        [{ data: 1 }, '', ['test'], 1]
-    );
-    t.deepEqual(
-        trimFalsy([0, 1, 2, 0, 3, 0]),
-        [1, 2, 0, 3]  // 中间0保留，两端0去除
-    );
-    t.deepEqual(
-        trimFalsy(['', 'valid', ' ']), // 注意：空格是真值
-        ['valid', ' ']
-    );
-});
-
-test('dsl.Lexer', async t => {
+test('Lexer', async t => {
     const lexer = new Lexer();
     const tokens = lexer.tokenize(
         `hello {exec abc "x y z"} ... , {"exec 2" 'ab\\'c' x="\\{ 123 \\}"} world...`
     );
     // t.log(tokens);
-    t.snapshot(tokens, 'dsl.Lexer #1');
+    t.snapshot(tokens, 'Lexer #1');
 });
 
-test('dsl.Parser - this.parse()', async t => {
+test('Parser - this.parse()', async t => {
     const lexer = new Lexer();
     const parser = new Parser();
 
@@ -84,15 +22,15 @@ test('dsl.Parser - this.parse()', async t => {
     );
     let ast = parser.parse(tokens);
     // t.log(ast)
-    t.snapshot(ast, 'dsl.Parser parse() #1');
+    t.snapshot(ast, 'Parser parse() #1');
 
     tokens = lexer.tokenize('.../q={xxx}&i={1:5}&s={ yyy }&d={"z\\"z}z"}');
     ast = parser.parse(tokens);
     // t.log(ast);
-    t.snapshot(ast, 'dsl.Parser parse() #2');
+    t.snapshot(ast, 'Parser parse() #2');
 });
 
-test('dsl.Parser - syntax', async t => {
+test('Parser - syntax', async t => {
     t.timeout(10000); // Increase timeout for this test
     const lexer = new Lexer();
     const parser = new Parser();
@@ -129,14 +67,14 @@ test('dsl.Parser - syntax', async t => {
 
 });
 
-test('dsl.Parser - preprocess', async t => {
+test('Parser - preprocess', async t => {
     const parser = new Parser();
     let ast = parser.parse('... q={:5 ^1 #apple} w={#doc:7} e={#3} r={20:30 ^doc:9}', 'main');
     // t.log(ast);
-    t.snapshot(ast, 'dsl.Parser - preprocess #1');
+    t.snapshot(ast, 'Parser - preprocess #1');
 })
 
-test('dsl.Interpreter - throw if unhoped loading', async t => {
+test('Interpreter - throw if unhoped loading', async t => {
     let interpreter = new Interpreter();
     interpreter.load('... q={:5}');
     interpreter.ready();
@@ -145,7 +83,7 @@ test('dsl.Interpreter - throw if unhoped loading', async t => {
     }, { message: 'Interpreter is readied. Stop load inputs.' });
 })
 
-test('dsl.Interpreter - throw if circular reference', async t => {
+test('Interpreter - throw if circular reference', async t => {
     let interpreter = new Interpreter();
     interpreter.load('... q={:5 ^1} w={20: ^2} e={3:9 ^0}');
     t.throws(() => {
@@ -153,7 +91,7 @@ test('dsl.Interpreter - throw if circular reference', async t => {
     }, { instanceOf: Interpreter.InterpreterError, message: 'Circular references exist between tags.' });
 })
 
-test('dsl.Interpreter - reference', async t => {
+test('Interpreter - reference', async t => {
     const interpreter = new Interpreter();
     interpreter.load('... q={:5} w={#0} e={#3} r={20:29}');
     interpreter.ready();
@@ -187,7 +125,7 @@ test('dsl.Interpreter - reference', async t => {
     t.deepEqual(actual, expected);
 })
 
-test('dsl.Interpreter - pow', async t => {
+test('Interpreter - pow', async t => {
     let interpreter = new Interpreter();
     interpreter.load('--'
         + ' q={1:3 ^1}'
@@ -208,7 +146,7 @@ test('dsl.Interpreter - pow', async t => {
         actual.push(o.main);
     }
 
-    t.snapshot(actual, 'dsl.Interpreter - pow #1');
+    t.snapshot(actual, 'Interpreter - pow #1');
 
     interpreter = new Interpreter();
     interpreter.load('.../uploas/{2020:2025 ^1}/{1:12 ^2}/{1:31}');
@@ -222,11 +160,11 @@ test('dsl.Interpreter - pow', async t => {
         actual.push(o.main);
     }
 
-    t.snapshot(actual, 'dsl.Interpreter - pow #2');
+    t.snapshot(actual, 'Interpreter - pow #2');
 
 })
 
-test('dsl.Interpreter - some', async t => {
+test('Interpreter - some', async t => {
     const interpreter = new Interpreter();
     interpreter.load('... q={:5 ^1} w={10-100-3} e={:3 ^3} r={zh,en,} {t=true|||t=true}');
     interpreter.load('... x={Choose:fruits.txt encoding=url}, y={choose:fruits.txt}', 'doc');
