@@ -1,10 +1,7 @@
-
-class A {
-    constructor(x){
-        this.x = x
-    }
+if (process.argv[1] == import.meta.filename) {
+   console.log(import.meta);
 }
 
-let a = new A(1)
-console.log(a['x']);
-console.log(a['y']);
+export function echo(x){
+    console.log(x);
+}
