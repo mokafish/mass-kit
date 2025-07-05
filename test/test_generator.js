@@ -212,13 +212,13 @@ test('product: non-string separator returns arrays', t => {
 // ----------------------
 // power() 测试用例
 // ----------------------
-test('空输入应返回空结果', t => {
+test('power: 空输入应返回空结果', t => {
     const ticker = power('', 1, 3, null);
     const result = ticker();
     t.deepEqual(result, { value: [], overflow: true });
 });
 
-test('单字符幂集应正确生成', t => {
+test('power: 单字符幂集应正确生成', t => {
     const ticker = power(['A'], 1, 2, '');
     const results = collectTicker(ticker, 4);
     
@@ -228,7 +228,7 @@ test('单字符幂集应正确生成', t => {
     t.deepEqual(results[3], { value: 'AA', overflow: false });   // 继续2次幂
 });
 
-test('指数范围应正确迭代', t => {
+test('power: 指数范围应正确迭代', t => {
     const ticker = power('AB', 2, 3, null);
     const results = collectTicker(ticker, 14);
     
@@ -254,7 +254,7 @@ test('指数范围应正确迭代', t => {
     t.deepEqual(results[13], { value: ['A','B'], overflow: false });
 });
 
-test('溢出标志应在范围重置时设置', t => {
+test('power: 溢出标志应在范围重置时设置', t => {
     const ticker = power('XY', 1, 1, '');
     const results = collectTicker(ticker, 4);
     
@@ -264,7 +264,7 @@ test('溢出标志应在范围重置时设置', t => {
     t.false(results[3].overflow); // Y
 });
 
-test('字符串输入应正确处理', t => {
+test('power: 字符串输入应正确处理', t => {
     const ticker = power('01', 1, 2, '');
     const results = collectTicker(ticker, 7);
     
