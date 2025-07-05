@@ -1,6 +1,6 @@
 // test/collection.test.js
 import test from 'ava';
-import { Counter, RotatingArray } from '../lib/collection.js';
+import { Counter, RotatingArray, LinkedList } from '../lib/collection.js';
 
 // 测试 Counter 类
 test('Counter: constructor initializes empty', t => {
@@ -157,5 +157,157 @@ test('RotatingArray: non-numeric indices', t => {
     const arr = new RotatingArray(3, 0);
     arr.foo = 'bar'; // 非数字属性
     t.is(arr.foo, 'bar');
-    t.is(arr.get('foo'), undefined); 
+    t.is(arr.get('foo'), undefined);
+});
+
+
+test('LinkedList initialization', t => {
+    const list = new LinkedList();
+    t.is(list.head, null);
+    t.is(list.tail, null);
+    t.is(list.length, 0);
+});
+
+test('append()', t => {
+    const list = new LinkedList();
+    const node1 = list.append('A');
+
+    t.is(list.head, node1);
+    t.is(list.tail, node1);
+    t.is(list.length, 1);
+
+    const node2 = list.append('B');
+    t.is(list.head.next, node2);
+    t.is(node2.prev, node1);
+    t.is(list.tail, node2);
+    t.is(list.length, 2);
+});
+
+test('prepend()', t => {
+    const list = new LinkedList();
+    const node2 = list.prepend('B');
+
+    t.is(list.head, node2);
+    t.is(list.tail, node2);
+    t.is(list.length, 1);
+
+    const node1 = list.prepend('A');
+    t.is(list.head, node1);
+    t.is(node1.next, node2);
+    t.is(node2.prev, node1);
+    t.is(list.length, 2);
+});
+
+test('getNode()', t => {
+    const list = new LinkedList();
+    list.append('A');
+    list.append('B');
+    list.append('C');
+
+    t.is(list.getNode(0).value, 'A');
+    t.is(list.getNode(1).value, 'B');
+    t.is(list.getNode(2).value, 'C');
+    t.is(list.getNode(-1).value, 'C');
+    t.is(list.getNode(-2).value, 'B');
+    t.is(list.getNode(-3).value, 'A');
+    t.is(list.getNode(5), null);
+    t.is(list.getNode(-5), null);
+});
+
+test('remove()', t => {
+    const list = new LinkedList();
+    const nodeA = list.append('A');
+    const nodeB = list.append('B');
+    const nodeC = list.append('C');
+
+    // 删除中间节点
+    t.is(list.remove(nodeB), 'B');
+    t.is(list.length, 2);
+    t.is(nodeA.next, nodeC);
+    t.is(nodeC.prev, nodeA);
+
+    // 删除头节点
+    t.is(list.remove(nodeA), 'A');
+    t.is(list.head, nodeC);
+    t.is(list.length, 1);
+
+    // 删除尾节点
+    t.is(list.remove(nodeC), 'C');
+    t.is(list.head, null);
+    t.is(list.tail, null);
+    t.is(list.length, 0);
+
+    // 错误类型测试
+    const error = t.throws(() => list.remove('invalid'));
+    t.true(error.message.includes('LinkedList.Node'));
+});
+
+test('forLimit()', t => {
+    const list = new LinkedList();
+    'ABCDE'.split('').forEach(c => list.append(c));
+
+    // 正向遍历
+    const forward = [];
+    list.forLimit(3, value => forward.push(value));
+    t.deepEqual(forward, ['A', 'B', 'C']);
+
+    // 反向遍历
+    const backward = [];
+    list.forLimit(-2, value => backward.push(value));
+    t.deepEqual(backward, ['D', 'E']);
+
+    // 组合遍历
+    const combined = [];
+    list.forLimit([2, -3], value => combined.push(value));
+    t.deepEqual(combined, ['A', 'B', 'C', 'D', 'E']);
+
+    // 边界测试
+    const empty = [];
+    list.forLimit(0, () => empty.push('X'));
+    t.is(empty.length, 0);
+
+    const overflow = [];
+    list.forLimit(10, value => overflow.push(value));
+    t.deepEqual(overflow, ['A', 'B', 'C', 'D', 'E']);
+});
+
+test('iterator', t => {
+    const list = new LinkedList();
+    list.append(1);
+    list.append(2);
+    list.append(3);
+
+    const result = [];
+    for (const value of list) {
+        result.push(value);
+    }
+
+    t.deepEqual(result, [1, 2, 3]);
+});
+
+test('toString()', t => {
+    const list = new LinkedList();
+    t.is(list.toString(), '');
+
+    list.append('X');
+    t.is(list.toString(), 'X');
+
+    list.append('Y');
+    list.prepend('W');
+    t.is(list.toString(), 'W <-> X <-> Y');
+});
+
+test('integration', t => {
+    const list = new LinkedList();
+    const node1 = list.prepend(10);
+    const node2 = list.append(20);
+    list.prepend(5);
+
+    t.is(list.toString(), '5 <-> 10 <-> 20');
+    t.is(list.getNode(1).value, 10);
+
+    list.remove(node1);
+    t.is(list.length, 2);
+    t.is(list.head.value, 5);
+    t.is(list.tail.value, 20);
 });
