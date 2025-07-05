@@ -160,154 +160,145 @@ test('RotatingArray: non-numeric indices', t => {
     t.is(arr.get('foo'), undefined);
 });
 
-
-test('LinkedList initialization', t => {
-    const list = new LinkedList();
-    t.is(list.head, null);
-    t.is(list.tail, null);
-    t.is(list.length, 0);
-});
-
-test('append()', t => {
-    const list = new LinkedList();
-    const node1 = list.append('A');
-
-    t.is(list.head, node1);
-    t.is(list.tail, node1);
-    t.is(list.length, 1);
-
-    const node2 = list.append('B');
-    t.is(list.head.next, node2);
-    t.is(node2.prev, node1);
-    t.is(list.tail, node2);
-    t.is(list.length, 2);
-});
-
-test('prepend()', t => {
-    const list = new LinkedList();
-    const node2 = list.prepend('B');
-
-    t.is(list.head, node2);
-    t.is(list.tail, node2);
-    t.is(list.length, 1);
-
-    const node1 = list.prepend('A');
-    t.is(list.head, node1);
-    t.is(node1.next, node2);
-    t.is(node2.prev, node1);
-    t.is(list.length, 2);
-});
-
-test('getNode()', t => {
-    const list = new LinkedList();
-    list.append('A');
-    list.append('B');
-    list.append('C');
-
-    t.is(list.getNode(0).value, 'A');
-    t.is(list.getNode(1).value, 'B');
-    t.is(list.getNode(2).value, 'C');
-    t.is(list.getNode(-1).value, 'C');
-    t.is(list.getNode(-2).value, 'B');
-    t.is(list.getNode(-3).value, 'A');
-    t.is(list.getNode(5), null);
-    t.is(list.getNode(-5), null);
-});
-
-test('remove()', t => {
-    const list = new LinkedList();
-    const nodeA = list.append('A');
-    const nodeB = list.append('B');
-    const nodeC = list.append('C');
-
-    // 删除中间节点
-    t.is(list.remove(nodeB), 'B');
-    t.is(list.length, 2);
-    t.is(nodeA.next, nodeC);
-    t.is(nodeC.prev, nodeA);
-
-    // 删除头节点
-    t.is(list.remove(nodeA), 'A');
-    t.is(list.head, nodeC);
-    t.is(list.length, 1);
-
-    // 删除尾节点
-    t.is(list.remove(nodeC), 'C');
-    t.is(list.head, null);
-    t.is(list.tail, null);
-    t.is(list.length, 0);
-
-    // 错误类型测试
-    const error = t.throws(() => list.remove('invalid'));
-    t.true(error.message.includes('LinkedList.Node'));
-});
-
-test('forLimit()', t => {
-    const list = new LinkedList();
-    'ABCDE'.split('').forEach(c => list.append(c));
-
-    // 正向遍历
-    const forward = [];
-    list.forLimit(3, value => forward.push(value));
-    t.deepEqual(forward, ['A', 'B', 'C']);
-
-    // 反向遍历
-    const backward = [];
-    list.forLimit(-2, value => backward.push(value));
-    t.deepEqual(backward, ['D', 'E']);
-
-    // 组合遍历
-    const combined = [];
-    list.forLimit([2, -3], value => combined.push(value));
-    t.deepEqual(combined, ['A', 'B', 'C', 'D', 'E']);
-
-    // 边界测试
-    const empty = [];
-    list.forLimit(0, () => empty.push('X'));
-    t.is(empty.length, 0);
-
-    const overflow = [];
-    list.forLimit(10, value => overflow.push(value));
-    t.deepEqual(overflow, ['A', 'B', 'C', 'D', 'E']);
-});
-
-test('iterator', t => {
+test('LinkedList: append and iteration', t => {
     const list = new LinkedList();
     list.append(1);
     list.append(2);
     list.append(3);
 
-    const result = [];
-    for (const value of list) {
-        result.push(value);
-    }
+    t.is(list.length, 3);
+    t.is(list.head.value, 1);
+    t.is(list.tail.value, 3);
 
-    t.deepEqual(result, [1, 2, 3]);
+    const arr = [...list];
+    t.deepEqual(arr, [1, 2, 3]);
 });
 
-test('toString()', t => {
+test('LinkedList: prepend', t => {
     const list = new LinkedList();
-    t.is(list.toString(), '');
+    list.prepend(1);
+    list.prepend(2);
+    list.prepend(3);
 
-    list.append('X');
-    t.is(list.toString(), 'X');
+    t.is(list.length, 3);
+    t.is(list.head.value, 3);
+    t.is(list.tail.value, 1);
 
-    list.append('Y');
-    list.prepend('W');
-    t.is(list.toString(), 'W <-> X <-> Y');
+    const arr = [...list];
+    t.deepEqual(arr, [3, 2, 1]);
 });
 
-test('integration', t => {
+test('LinkedList: insert after node', t => {
     const list = new LinkedList();
-    const node1 = list.prepend(10);
-    const node2 = list.append(20);
-    list.prepend(5);
+    const n1 = list.append('a');
+    const n2 = list.append('b');
+    list.insert('x', n1, true); // after n1
 
-    t.is(list.toString(), '5 <-> 10 <-> 20');
-    t.is(list.getNode(1).value, 10);
+    t.is(list.length, 3);
+    t.deepEqual([...list], ['a', 'x', 'b']);
+    t.is(list.tail.value, 'b');
+});
 
-    list.remove(node1);
+test('LinkedList: insert before node', t => {
+    const list = new LinkedList();
+    const n1 = list.append('a');
+    const n2 = list.append('b');
+    list.insert('x', n2, false); // before n2
+
+    t.is(list.length, 3);
+    t.deepEqual([...list], ['a', 'x', 'b']);
+    t.is(list.tail.value, 'b');
+});
+
+test('LinkedList: getNode positive and negative', t => {
+    const list = new LinkedList();
+    list.append('a');
+    list.append('b');
+    list.append('c');
+    t.is(list.getNode(0).value, 'a');
+    t.is(list.getNode(1).value, 'b');
+    t.is(list.getNode(2).value, 'c');
+    t.is(list.getNode(-1).value, 'c');
+    t.is(list.getNode(-2).value, 'b');
+    t.is(list.getNode(-3).value, 'a');
+    t.is(list.getNode(3), null);
+    t.is(list.getNode(-4), null);
+});
+
+test('LinkedList: remove node', t => {
+    const list = new LinkedList();
+    const n1 = list.append('a');
+    const n2 = list.append('b');
+    const n3 = list.append('c');
+    t.is(list.length, 3);
+
+    t.is(list.remove(n2), 'b');
     t.is(list.length, 2);
-    t.is(list.head.value, 5);
-    t.is(list.tail.value, 20);
+    t.deepEqual([...list], ['a', 'c']);
+
+    t.is(list.remove(n1), 'a');
+    t.is(list.length, 1);
+    t.deepEqual([...list], ['c']);
+
+    t.is(list.remove(n3), 'c');
+    t.is(list.length, 0);
+    t.deepEqual([...list], []);
+    t.is(list.head, null);
+    t.is(list.tail, null);
+});
+
+test('LinkedList: remove throws on invalid node', t => {
+    const list = new LinkedList();
+    list.append('a');
+    const error = t.throws(() => list.remove({}), { instanceOf: TypeError });
+    t.regex(error.message, /not is a LinkedList\.Node/);
+});
+
+test('LinkedList: forLimit positive', t => {
+    const list = new LinkedList();
+    [1, 2, 3, 4, 5].forEach(v => list.append(v));
+    const res = [];
+    list.forLimit(3, v => res.push(v));
+    t.deepEqual(res, [1, 2, 3]);
+});
+
+test('LinkedList: forLimit negative', t => {
+    const list = new LinkedList();
+    [1, 2, 3, 4, 5].forEach(v => list.append(v));
+    const res = [];
+    list.forLimit(-2, v => res.push(v));
+    t.deepEqual(res, [4, 5]);
+});
+
+test('LinkedList: forLimit array [head, tail]', t => {
+    const list = new LinkedList();
+    [1, 2, 3, 4, 5, 6].forEach(v => list.append(v));
+    let res = [];
+    list.forLimit([2, -2], v => res.push(v));
+    t.deepEqual(res, [1, 2, 5, 6]);
+
+    res = [];
+    list.forLimit([5, -5], v => res.push(v));
+    t.deepEqual(res, [1, 2, 3, 4, 5, 6]);
+    res = [];
+    list.forLimit([6, -2], v => res.push(v));
+    t.deepEqual(res, [1, 2, 3, 4, 5, 6]);
+    res = [];
+    list.forLimit([6, -6], v => res.push(v));
+    t.deepEqual(res, [1, 2, 3, 4, 5, 6]);
+    res = [];
+    list.forLimit([8, -3], v => res.push(v));
+    t.deepEqual(res, [1, 2, 3, 4, 5, 6]);
+    res = [];
+    list.forLimit([2, -8], v => res.push(v));
+    t.deepEqual(res, [1, 2, 3, 4, 5, 6]);
+    res = [];
+});
+
+test('LinkedList: toString', t => {
+    const list = new LinkedList();
+    [1, 2, 3].forEach(v => list.append(v));
+    t.is(list.toString(), '1 <-> 2 <-> 3');
+    const empty = new LinkedList();
+    t.is(empty.toString(), '');
 });
