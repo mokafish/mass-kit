@@ -49,7 +49,11 @@ function limitGet(url) {
             if (bi === limitSize) {
                 controller.abort(); // 触发取消操作
                 req.destroy()
-                resolve(buff)
+                req.emit('end')
+                // resolve(buff)
+                // console.log({ ...req.response.ip });
+                // console.log({ ...req.response.headers });
+                // console.log({ ...req.timings });
             }
         });
 
@@ -68,6 +72,12 @@ function limitGet(url) {
             if (bi <= limitSize) {
                 buff = buff.subarray(0, bi);
             }
+            console.log(req.requestUrl);
+            console.log(req.response.ip);
+            console.log(req.response.statusCode);
+            console.log(req.response.headers);
+            console.log(req.timings);
+
             resolve(buff)
         });
 

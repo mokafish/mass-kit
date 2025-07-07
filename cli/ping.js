@@ -2,7 +2,7 @@
 // cli/ping.js
 import fs from 'fs/promises';
 import meow from 'meow';
-
+import App from '../kit/ping.js'
 
 function parseRangeExpr(expr) {
     const parts = expr.split('-');
@@ -144,8 +144,29 @@ const cli = meow(`
 cli.flags.delay = parseRangeExpr(cli.flags.delay)
 cli.flags.unit = parseRangeExpr(cli.flags.unit)
 
-console.log(cli.flags);
+const app = new App(cli.flags, cli.input[0])
 
+app.on('ready', () => {
+    console.log('ready')
+})
+app.on('error', error => {
+    console.error('' + error);
+})
+app.on('submit', info => {
+    console.info('submit: '+info.url);
+    console.info(' - alive', app.alive.length);
+    console.info(' - alive', app.alive.toString());
+})
+
+
+app.on('result', info => {
+    console.info('result: '+info.url);
+})
+
+await app.init()
+app.start()
+
+// console.log(app);
 
 
 

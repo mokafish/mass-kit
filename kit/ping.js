@@ -4,98 +4,169 @@ import fs from 'fs/promises';
 import { RotatingArray, LinkedList } from '../lib/collection.js'
 import { Interpreter } from '../lib/dsl.js'
 import got from 'got';
-import { rand } from '../lib/generator.js';
+import { rand, seq } from '../lib/generator.js';
 
-export const defaultConfig = {
-    concurrent: 16,
-    delay: [1, 5],
-    unit: [1, 1],
-    header: [],
-    cookies: '',
-    body: '',
-    form: '',
-    method: 'GET',
-    proxy: '',
-    silent: false,
-    recover: '',
-    output: '',
-    outputStats: '',
-    outputLog: '',
-    http2: false,
-    tag: '{...}',
-    help: false,
-    version: false
-}
+export default class App {
+    static defaultConfig = {
+        concurrent: 16,
+        delay: [1, 5],
+        unit: [1, 1],
+        header: [],
+        cookies: '',
+        body: '',
+        form: '',
+        method: 'GET',
+        proxy: '',
+        silent: false,
+        recover: '',
+        output: '',
+        outputStats: '',
+        outputLog: '',
+        http2: false,
+        tag: '{...}',
+        help: false,
+        version: false
+    }
 
-export class App {
+    static defaultHeaders = {
+
+    }
+
     /**
      * 
      * @param {typeof defaultConfig} config 
      * @param {string[]} target
      */
-    constructor(config, target) {
-        this.config = { ...config, ...defaultConfig }
+    constructor(config, target = 'http://httpbin.org/delay/10?id={1:}') {
+        /** @type {typeof App.defaultConfig} */
+        this.config = { ...App.defaultConfig, ...config, }
         this.target = target
         this.eventEmitter = new EventEmitter()
         this.interpreter = new Interpreter
         this.alive = new LinkedList()
         this.history = new RotatingArray(10)
-        this.errors = new RotatingArray(10)
+        // this.errors = new RotatingArray(10)
         this.running = false
-        this.nextDelay = rand(...this.config.delay)
+        this.nextDelay = rand(this.config.delay[0] * 1000, this.config.delay[1] * 1000,)
         this.nextUnit = rand(...this.config.unit)
-
+        this.nextID = seq(1)
     }
 
     async submit() {
-        let { u, h, c } = this.interpreter.interpret()
+        let { url, header, cookie } = this.interpreter.interpret()
         let headers = {}
-
-        this.emit('submit', u)
-
-        const g = got(u, {
-            method: 'GET',
+        let cookies = {}
+        let body = ''
+        let bodySummary = ''
+        // let sym = Symbol(url)
+        let id = this.nextID().value
+        let reqInfo = {
+            id,
+            url,
             headers,
-            cookieJar: undefined,
-            body: undefined,
-            isStream: true,
-            responseType: 'buffer',
-            throwHttpErrors: false,
-        })
+            cookies,
+            bodySummary,
+        }
 
+        const node = this.alive.append(id)
+        this.emit('submit', reqInfo)
+        const controller = new AbortController();
+        try {
+            const req = got(url, {
+                method: 'GET',
+                headers,
+                cookieJar: undefined,
+                body: undefined,
+                isStream: true,
+                responseType: 'buffer',
+                throwHttpErrors: false,
+                signal: controller.signal, // 绑定取消信号
+            })
 
-        let limitSize
-        let buff = Buffer.alloc(limitSize)
-        let bi = 0
-        g.on('data', data => {
+            // let res = null
+            // req.on('response', response => {
+            //     res = response
+            // })
 
-        })
-        g.on('end', () => {
+            let maxResponse = this.config.maxResponse || 65536
+            let buff = Buffer.alloc(maxResponse)
+            let bi = 0
+            req.on('data', data => {
+                const rem = maxResponse - bi;  // 计算剩余空间
+                if (data.length <= rem) {
+                    // 当前数据块可完全放入缓冲区
+                    buff.set(data, bi);
+                    bi += data.length;
+                } else {
+                    // 只取能填满缓冲区的部分
+                    buff.set(data.subarray(0, rem), bi);
+                    bi = maxResponse;  // 标记缓冲区已满
+                }
 
-        })
+                if (bi >= maxResponse) {
+                    controller.abort();
+                    req.destroy()
+                    req.emit('end')
+                }
+            })
 
-        this.emit('res', u)
+            req.on('end', () => {
+                if (bi < maxResponse) {
+                    buff = buff.subarray(0, bi);
+                }
+                this.alive.remove(node)
+
+                let response = req.response
+                let result = {
+                    id,
+                    url: req.requestUrl,
+                    code: response.ststusCode,
+                    headers: response.headers,
+                    // bodySummary: buff,
+                }
+                this.history.push(result)
+                this.emit('result', result)
+            })
+
+            req.on('error', error => {
+                if (error.name !== 'AbortError') {
+                    this.alive.remove(node)
+                    this.emit('error', error)
+                }
+            })
+        } catch (error) {
+            this.alive.remove(node)
+            this.emit('error', error)
+        }
+        // this.emit('res', u)
     }
 
     async init() {
-        this.interpreter.load(this.target, 'u')
-        this.interpreter.load('', 'h')
-        this.interpreter.load('', 'c')
-        // this.interpreter.load('', 'f')
-        // this.interpreter.load('', 'b')
-        this.interpreter.ready()
+        try {
+            this.interpreter.load(this.target, 'url')
+            this.interpreter.load('', 'header')
+            this.interpreter.load('', 'cookie')
+            // this.interpreter.load('', 'form')
+            // this.interpreter.load('', 'body')
+            this.interpreter.ready()
+            this.emit('ready')
+        } catch (e) {
+            this.emit('error', e)
+        }
     }
 
     async start() {
         if (this.running) return;
+        this.running = true
+        this.emit('start')
         while (this.running) {
-            this.tick()
+            await this.tick()
         }
     }
 
     async tick() {
         let currentUnit = this.nextUnit().value
-        for (let i = 0; i < currentUnit; i++) {
+        for (let i = 0; i < currentUnit && this.alive.length < this.config.concurrent; i++) {
             this.submit()
         }
 
@@ -122,9 +193,8 @@ export class App {
         this.eventEmitter.emit(event, ...args);
         return this;
     }
-
 }
 
-async function sleep(ms) {
+function sleep(ms) {
     return new Promise((resolve) => setTimeout(() => resolve(), ms))
 }
