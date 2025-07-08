@@ -76,6 +76,8 @@ function limitGet(url) {
             console.log(req.response.ip);
             console.log(req.response.statusCode);
             console.log(req.response.headers);
+            req.timings.end = Date.now()
+            req.timings.phases.total = req.timings.end - req.timings.start
             console.log(req.timings);
 
             resolve(buff)

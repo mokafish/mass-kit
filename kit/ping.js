@@ -115,6 +115,9 @@ export default class App {
                     buff = buff.subarray(0, bi);
                 }
                 this.alive.remove(node)
+                // fix got lib `req.timings.phases.total` is undefined
+                let phases = req.timings.phases.total ||
+                    (Date.now() - req.timings.start)
 
                 let response = req.response
                 let result = {
@@ -122,8 +125,10 @@ export default class App {
                     url: req.requestUrl,
                     code: response.statusCode,
                     headers: response.headers,
+                    phases,
                     // bodySummary: buff,
                 }
+
                 this.history.push(result)
                 this.emit('result', result)
             })
