@@ -24,6 +24,8 @@
   "dependencies": {
     "got": "^14.4.7",
     "meow": "^13.2.0",
+    "ua-parser-js": "^2.0.4",
+    "user-agents": "^1.1.593",
     "winston": "^3.17.0"
   }
 }

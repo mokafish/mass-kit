@@ -61,6 +61,10 @@ const server = net.createServer((socket) => {
     });
 });
 
+server.on('error',(err)=>{
+    console.error(''+err);
+})
+
 let port = 8504
 server.listen(port, () => {
     console.log('listen [::]:' + port);
