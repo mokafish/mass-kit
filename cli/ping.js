@@ -151,7 +151,7 @@ const consoleFormat = winston.format.combine(
     winston.format.colorize(),                       // 控制台着色
     // winston.format.align(),                          // 对齐
     winston.format.printf(({ level, message, timestamp }) => {
-        return `[${timestamp.toString().substring(11,19)}] ${level}: ${message}`
+        return `[${timestamp.toString().substring(11, 19)}] ${level}: ${message}`
     })
 )
 
@@ -164,7 +164,7 @@ const logger = winston.createLogger({
     transports: [
         new winston.transports.Console({
             format: consoleFormat,
-            format: fileFormat,
+            // format: fileFormat,
         }),
         // new winston.transports.File({ filename: 'logs/combined.log' })
     ]
@@ -178,15 +178,14 @@ app.on('ready', () => {
 app.on('error', error => {
     logger.error('' + error);
 })
-app.on('submit', info => {
-    logger.info('submit: ' + info.url);
-    logger.info(' - alive', app.alive.length);
-    logger.info(' - alive', app.alive.toString());
+app.on('submit', ({ id, url }) => {
+    logger.info(`submit: ${id} ${url}`);
+    logger.info(`alive ${app.alive.length} - ${app.alive}`);
 })
 
 
-app.on('result', info => {
-    logger.info('result: ' + info.url);
+app.on('result', ({ id, code, headers, bodySummary }) => {
+    logger.info(`result: ${id} ${code}`);
 })
 
 await app.init()

@@ -120,7 +120,7 @@ export default class App {
                 let result = {
                     id,
                     url: req.requestUrl,
-                    code: response.ststusCode,
+                    code: response.statusCode,
                     headers: response.headers,
                     // bodySummary: buff,
                 }
