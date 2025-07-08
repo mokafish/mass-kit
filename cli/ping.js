@@ -175,17 +175,18 @@ const app = new App(cli.flags, cli.input[0])
 app.on('ready', () => {
     logger.info('ready')
 })
-app.on('error', error => {
-    logger.error('' + error);
+app.on('error', (error, { id, url }) => {
+    logger.error(`${error} (${id}) ${url}` );
 })
+
 app.on('submit', ({ id, url }) => {
-    logger.info(`submit: ${id} ${url}`);
-    logger.info(`alive ${app.alive.length} - ${app.alive}`);
+    logger.info(`submit(${id})  ${url}`);
+    logger.info(`alive(${app.alive.length})  ${app.alive}`);
 })
 
 
 app.on('result', ({ id, code, headers, bodySummary }) => {
-    logger.info(`result: ${id} ${code}`);
+    logger.info(`result(${id})  ${code}`);
 })
 
 await app.init()

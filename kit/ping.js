@@ -131,12 +131,12 @@ export default class App {
             req.on('error', error => {
                 if (error.name !== 'AbortError') {
                     this.alive.remove(node)
-                    this.emit('error', error)
+                    this.emit('error', error, reqInfo)
                 }
             })
         } catch (error) {
             this.alive.remove(node)
-            this.emit('error', error)
+            this.emit('error', error, reqInfo)
         }
         // this.emit('res', u)
     }
