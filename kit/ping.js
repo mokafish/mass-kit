@@ -31,6 +31,7 @@ export default class App {
     }
 
     static defaultHeaders = {
+        "upgrade-insecure-requests": "1",
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
         'sec-fetch-site': 'same-origin',
         'sec-fetch-mode': 'navigate',
@@ -38,7 +39,7 @@ export default class App {
         'sec-fetch-user': '?1',
         'accept-encoding': 'gzip, deflate, br, zstd',
         'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-        'user-agent':'curl/7.8.0',
+        'user-agent': 'curl/7.8.0',
     }
 
 
@@ -63,13 +64,25 @@ export default class App {
     }
 
     async submit() {
-        let { url, header, cookie } = this.interpreter.interpret()
+        let { url, header, cookie, ip } = this.interpreter.interpret()
         let ua = new UserAgent().toString()
         let headers = {
             ...App.defaultHeaders,
             ...helper.buildClientHints(ua),
             'user-agent': ua
         }
+        
+        //TODO: referer == root|same|none|<url>
+        if (true) {
+            headers['referer'] = new URL('/', url).toString()
+        }
+
+        // randomized X-Forwarded-For and X-Real-IP address
+        if (ip) {
+            headers['X-Forwarded-For'] = ip
+            headers['X-Real-IP'] = ip
+        }
+
         let cookies = {}
         let body = ''
         let bodySummary = ''
@@ -164,6 +177,7 @@ export default class App {
     async init() {
         try {
             this.interpreter.load(this.target, 'url')
+            this.interpreter.load('{1-254}.{1-254}.{1-254}.{1-254}', 'ip')
             this.interpreter.load('', 'header')
             this.interpreter.load('', 'cookie')
             // this.interpreter.load('', 'form')
