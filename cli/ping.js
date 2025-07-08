@@ -2,6 +2,7 @@
 // cli/ping.js
 import fs from 'fs/promises';
 import meow from 'meow';
+import winston from 'winston'
 import App from '../kit/ping.js'
 
 function parseRangeExpr(expr) {
@@ -144,23 +145,48 @@ const cli = meow(`
 cli.flags.delay = parseRangeExpr(cli.flags.delay)
 cli.flags.unit = parseRangeExpr(cli.flags.unit)
 
+
+const consoleFormat = winston.format.combine(
+    winston.format.timestamp(),                      // 带时间戳
+    winston.format.colorize(),                       // 控制台着色
+    // winston.format.align(),                          // 对齐
+    winston.format.printf(({ level, message, timestamp }) => {
+        return `[${timestamp.toString().substring(11,19)}] ${level}: ${message}`
+    })
+)
+
+// 自定义 file 输出格式
+const fileFormat = winston.format.combine(
+    winston.format.timestamp(),                      // 带时间戳
+    winston.format.json()                            // JSON 格式
+)
+const logger = winston.createLogger({
+    transports: [
+        new winston.transports.Console({
+            format: consoleFormat,
+            format: fileFormat,
+        }),
+        // new winston.transports.File({ filename: 'logs/combined.log' })
+    ]
+});
+
 const app = new App(cli.flags, cli.input[0])
 
 app.on('ready', () => {
-    console.log('ready')
+    logger.info('ready')
 })
 app.on('error', error => {
-    console.error('' + error);
+    logger.error('' + error);
 })
 app.on('submit', info => {
-    console.info('submit: '+info.url);
-    console.info(' - alive', app.alive.length);
-    console.info(' - alive', app.alive.toString());
+    logger.info('submit: ' + info.url);
+    logger.info(' - alive', app.alive.length);
+    logger.info(' - alive', app.alive.toString());
 })
 
 
 app.on('result', info => {
-    console.info('result: '+info.url);
+    logger.info('result: ' + info.url);
 })
 
 await app.init()
