@@ -176,7 +176,7 @@ app.on('ready', () => {
     logger.info('ready')
 })
 app.on('error', (error, { id, url }) => {
-    logger.error(`${error} (${id}) ${url}` );
+    logger.error(`${error} (${id}) ${url}`);
 })
 
 app.on('submit', ({ id, url }) => {
@@ -185,8 +185,8 @@ app.on('submit', ({ id, url }) => {
 })
 
 
-app.on('result', ({ id, code, headers, bodySummary }) => {
-    logger.info(`result(${id})  ${code}`);
+app.on('result', ({ id, code, headers, bodySummary, phases }) => {
+    logger.info(`result(${id})  ${code} - ${phases}ms`);
 })
 
 await app.init()
