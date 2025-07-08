@@ -59,10 +59,13 @@ const server = net.createServer((socket) => {
         }, Math.random() * 5000 + 5000)
 
     });
+    socket.on('error', (err) => {
+        console.error('socket: ' + err);
+    })
 });
 
-server.on('error',(err)=>{
-    console.error(''+err);
+server.on('error', (err) => {
+    console.error('server: ' + err);
 })
 
 let port = 8504
