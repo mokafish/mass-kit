@@ -1,6 +1,6 @@
 import util from 'util';
 import test from 'ava';
-import { Lexer, Parser, Interpreter } from '../lib/sbl.js';
+import { Lexer, Parser, SBL } from '../lib/sbl.js';
 
 util.inspect.defaultOptions.depth = 5;  // Increase AVA's printing depth
 
@@ -74,8 +74,8 @@ test('Parser - preprocess', async t => {
     t.snapshot(ast, 'Parser - preprocess #1');
 })
 
-test('Interpreter - throw if unhoped loading', async t => {
-    let interpreter = new Interpreter();
+test('SBL - throw if unhoped loading', async t => {
+    let interpreter = new SBL();
     interpreter.load('... q={:5}');
     interpreter.ready();
     t.throws(() => {
@@ -83,23 +83,23 @@ test('Interpreter - throw if unhoped loading', async t => {
     }, { message: 'Interpreter is readied. Stop load inputs.' });
 })
 
-test('Interpreter - throw if circular reference', async t => {
-    let interpreter = new Interpreter();
+test('SBL - throw if circular reference', async t => {
+    let interpreter = new SBL();
     interpreter.load('... q={:5 ^1} w={20: ^2} e={3:9 ^0}');
     t.throws(() => {
         interpreter.ready();
-    }, { instanceOf: Interpreter.InterpreterError, message: 'Circular references exist between tags.' });
+    }, { instanceOf: SBL.InterpreterError, message: 'Circular references exist between tags.' });
 })
 
-test('Interpreter - reference', async t => {
-    const interpreter = new Interpreter();
+test('SBL - reference', async t => {
+    const interpreter = new SBL();
     interpreter.load('... q={:5} w={#0} e={#3} r={20:29}');
     interpreter.ready();
     // t.log(interpreter.runtime.heap);
     let actual = []
     let o;
     for (let i = 0; i < 15; i++) {
-        o = interpreter.interpret();
+        o = interpreter.execute();
         // t.log(`${i}`.padStart(2), o.main);
         actual.push(o.main);
     }
@@ -125,8 +125,8 @@ test('Interpreter - reference', async t => {
     t.deepEqual(actual, expected);
 })
 
-test('Interpreter - pow', async t => {
-    let interpreter = new Interpreter();
+test('SBL - pow', async t => {
+    let interpreter = new SBL();
     interpreter.load('--'
         + ' q={1:3 ^1}'
         + ' w={11:33:11 ^2}'
@@ -141,70 +141,70 @@ test('Interpreter - pow', async t => {
     let actual = []
     let o;
     for (let i = 0; i < 100; i++) {
-        o = interpreter.interpret();
+        o = interpreter.execute();
         // t.log(`${i}`.padStart(2), o.main);
         actual.push(o.main);
     }
 
-    t.snapshot(actual, 'Interpreter - pow #1');
+    t.snapshot(actual, 'SBL - pow #1');
 
-    interpreter = new Interpreter();
+    interpreter = new SBL();
     interpreter.load('.../uploas/{2020:2025 ^1}/{1:12 ^2}/{1:31}');
     interpreter.ready();
     // t.log(interpreter.runtime.heap);
     actual = []
     o;
     for (let i = 0; i < 1000; i++) {
-        o = interpreter.interpret();
+        o = interpreter.execute();
         // t.log(`${i}`.padStart(2), o.main);
         actual.push(o.main);
     }
 
-    t.snapshot(actual, 'Interpreter - pow #2');
+    t.snapshot(actual, 'SBL - pow #2');
 
 })
 
-test('Interpreter - power text', async t => {
-    const interpreter = new Interpreter();
+test('SBL - power text', async t => {
+    const interpreter = new SBL();
     interpreter.load('/login?username={root,admin ^1}&password={d2:3}', 'url');
     interpreter.ready();
     for (let i = 0; i < 100; i++) {
-        let url = interpreter.interpret().url;
+        let url = interpreter.execute().url;
         t.is(url, `/login?username=root&password=${i.toString().padStart(2, '0')}`)
     }
     for (let i = 0; i < 1000; i++) {
-        let url = interpreter.interpret().url;
+        let url = interpreter.execute().url;
         t.is(url, `/login?username=root&password=${i.toString().padStart(3, '0')}`)
     }
     for (let i = 0; i < 100; i++) {
-        let url = interpreter.interpret().url;
+        let url = interpreter.execute().url;
         t.is(url, `/login?username=admin&password=${i.toString().padStart(2, '0')}`)
     }
     for (let i = 0; i < 1000; i++) {
-        let url = interpreter.interpret().url;
+        let url = interpreter.execute().url;
         t.is(url, `/login?username=admin&password=${i.toString().padStart(3, '0')}`)
     }
     for (let i = 0; i < 100; i++) {
-        let url = interpreter.interpret().url;
+        let url = interpreter.execute().url;
         t.is(url, `/login?username=root&password=${i.toString().padStart(2, '0')}`)
     }
 })
 
 
-test('Interpreter - some', async t => {
+test('SBL - some', async t => {
     let code = '... q={:5 ^1} w={10-100-3} e={:3 ^3} r={zh,en,} {t=true|||t=true}'
     code = '... x={Choose:fruits.txt encoding=url}, y={choose:fruits.txt}'
     code = '... t={ts} m={ms}'
     code = '... username={w5-16} password={t8-32}'
     code = '... username={root,admin ^1} password={d2:3}'
 
-    const interpreter = new Interpreter();
+    const interpreter = new SBL();
     interpreter.load(code);
     interpreter.ready();
     // t.log(interpreter.runtime.heap);
     let o;
     for (let i = 0; i < 15; i++) {
-        o = interpreter.interpret();
+        o = interpreter.execute();
         t.log(`${i}`.padStart(2), o.main);
     }
     t.pass();
