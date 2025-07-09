@@ -4,7 +4,7 @@ import fs from 'fs/promises';
 import got from 'got';
 import UserAgent from 'user-agents';
 import { RotatingArray, LinkedList } from '../lib/collection.js'
-import { Interpreter } from '../lib/dsl.js'
+import { Interpreter } from '../lib/sbl.js'
 import { rand, seq } from '../lib/generator.js';
 import helper from '../lib/helper.js';
 
@@ -62,6 +62,7 @@ export default class App {
         this.nextUnit = rand(...this.config.unit)
         this.nextID = seq(1)
     }
+    
 
     async submit() {
         let { url, header, cookie, ip } = this.interpreter.interpret()

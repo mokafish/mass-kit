@@ -1,6 +1,6 @@
 import util from 'util';
 import test from 'ava';
-import { Lexer, Parser, Interpreter } from '../lib/dsl.js';
+import { Lexer, Parser, Interpreter } from '../lib/sbl.js';
 
 util.inspect.defaultOptions.depth = 5;  // Increase AVA's printing depth
 
